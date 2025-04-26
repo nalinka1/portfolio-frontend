@@ -1,4 +1,4 @@
-import BlogPost from '@/components/BlogPost';
+import BlogPost from '@/components/blog/BlogPost';
 import { getBlogPost } from '@/lib/blog'; // Your data fetching function
 
 export default async function BlogPostPage({

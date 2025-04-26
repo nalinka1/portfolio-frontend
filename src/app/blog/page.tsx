@@ -1,8 +1,8 @@
-import BlogList from '@/components/BlogList';
-import BlogTags from '@/components/BlogTags';
+import BlogList from '@/components/blog/BlogList';
+import BlogTags from '@/components/blog/BlogTags';
 import { getUniqueTags } from '@/lib/utils';
 import { getBlogPosts } from '@/lib/blog';
-import BlogPagination from "@/components/BlogPagination";
+import BlogPagination from "@/components/blog/BlogPagination";
 
 interface BlogSearchParams {
     tag?: string | string[];
