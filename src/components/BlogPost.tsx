@@ -11,34 +11,41 @@ type BlogPostProps = {
         description: string;
         date: string;
         tags: string[];
-        content: string | ReactElement; // stays the same
+        content: string | ReactElement;
         readingTime: string;
     };
 };
 
 export default function BlogPost({ post }: BlogPostProps) {
     return (
-        <article className="prose dark:prose-invert max-w-4xl mx-auto">
-            <header className="mb-8">
-                <h1 className="text-3xl font-bold mb-2">{post.title}</h1>
-                <div className="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+        <article className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+            <header className="mb-12 text-center">
+                <h1 className="text-4xl font-extrabold tracking-tight text-gray-900 dark:text-white mb-4">
+                    {post.title || "Untitled"}
+                </h1>
+                <div className="flex flex-wrap justify-center items-center space-x-6 text-sm text-gray-500 dark:text-gray-400">
                     <time dateTime={post.date}>{formatDate(post.date)}</time>
-                    {post.tags && post.tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                            {post.tags.map((tag) => (
-                                <span
-                                    key={tag}
-                                    className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs"
-                                >
-                  {tag}
-                </span>
-                            ))}
-                        </div>
+                    <span>&bull;</span>
+                    <span>{post.readingTime || "1 min read"}</span>
+                    {post.tags.length > 0 && (
+                        <>
+                            <span>&bull;</span>
+                            <div className="flex flex-wrap gap-2">
+                                {post.tags.map((tag) => (
+                                    <span
+                                        key={tag}
+                                        className="px-2 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 text-xs font-medium"
+                                    >
+                    #{tag}
+                  </span>
+                                ))}
+                            </div>
+                        </>
                     )}
                 </div>
             </header>
 
-            <div className="blog-content">
+            <div className="prose prose-xl dark:prose-invert max-w-none">
                 {typeof post.content === 'string' ? (
                     <div dangerouslySetInnerHTML={{ __html: post.content }} />
                 ) : (
@@ -46,9 +53,9 @@ export default function BlogPost({ post }: BlogPostProps) {
                 )}
             </div>
 
-            <footer className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
+            <footer className="mt-16 pt-8 border-t border-gray-200 dark:border-gray-700 text-center">
                 <p className="text-sm text-gray-500 dark:text-gray-400">
-                    Thanks for reading! Let me know your thoughts.
+                    Thanks for reading! Feel free to share your thoughts below.
                 </p>
             </footer>
         </article>

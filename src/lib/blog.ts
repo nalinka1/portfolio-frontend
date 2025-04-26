@@ -106,16 +106,15 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
     try {
         const filePath = path.join(postsDirectory, `${slug}.mdx`);
         const fileContents = await fs.readFile(filePath, 'utf8');
-        const {data, content} = matter(fileContents);
 
-        // Compile MDX with syntax highlighting
-        const {frontmatter, content: compiledContent} = await compileMDX<{
+        // 👇 Directly compile fileContents (not using matter first)
+        const { frontmatter, content: compiledContent } = await compileMDX<{
             title: string;
             description: string;
             date: string;
             tags: string[];
         }>({
-            source: content,
+            source: fileContents,  // <-- fileContents, not content from gray-matter
             options: {
                 parseFrontmatter: true,
                 mdxOptions: {
@@ -151,7 +150,7 @@ export async function getBlogPost(slug: string): Promise<BlogPost | null> {
             date: frontmatter.date || new Date().toISOString(),
             tags: frontmatter.tags || [],
             content: compiledContent,
-            readingTime: calculateReadingTime(content),
+            readingTime: calculateReadingTime(fileContents), // word count
         };
     } catch (error) {
         console.error(`Error reading blog post ${slug}:`, error);
