@@ -11,7 +11,7 @@ type BlogPostProps = {
         description: string;
         date: string;
         tags: string[];
-        content: string | ReactElement;  // Updated this line
+        content: string | ReactElement; // stays the same
         readingTime: string;
     };
 };
@@ -38,10 +38,13 @@ export default function BlogPost({ post }: BlogPostProps) {
                 </div>
             </header>
 
-            <div
-                className="blog-content"
-                dangerouslySetInnerHTML={{ __html: post.content }}
-            />
+            <div className="blog-content">
+                {typeof post.content === 'string' ? (
+                    <div dangerouslySetInnerHTML={{ __html: post.content }} />
+                ) : (
+                    post.content
+                )}
+            </div>
 
             <footer className="mt-12 pt-6 border-t border-gray-200 dark:border-gray-700">
                 <p className="text-sm text-gray-500 dark:text-gray-400">

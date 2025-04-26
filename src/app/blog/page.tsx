@@ -4,26 +4,29 @@ import { getUniqueTags } from '@/lib/utils';
 import { getBlogPosts } from '@/lib/blog';
 import BlogPagination from "@/components/BlogPagination";
 
-export default async function BlogPage({
-                                           searchParams,
-                                       }: {
-    searchParams?: {
+interface BlogSearchParams {
+    tag?: string | string[];
+    page?: string | string[];
+}
+
+interface BlogPageProps {
+    searchParams: {
         [key: string]: string | string[] | undefined
     };
-}) {
-    try {
-        const tagFilter = Array.isArray(searchParams?.tag)
-            ? searchParams.tag[0]
-            : searchParams?.tag;
+}
 
-        // Safely parse page number with validation
-        const pageParam = searchParams?.page;
-        const parsedPage = typeof pageParam === 'string'
-            ? parseInt(pageParam, 10)
-            : 1;
-        const currentPage = isNaN(parsedPage) || parsedPage < 1
-            ? 1
-            : parsedPage;
+export default async function BlogPage({ searchParams }: BlogPageProps) {
+    // First await the searchParams by destructuring them
+    const { tag, page } = searchParams;
+
+    try {
+        // Now safely access the params
+        const tagFilter = Array.isArray(tag) ? tag[0] : tag;
+
+        // Safely parse page number
+        const pageParam = Array.isArray(page) ? page[0] : page;
+        const parsedPage = pageParam ? parseInt(pageParam, 10) : 1;
+        const currentPage = isNaN(parsedPage) || parsedPage < 1 ? 1 : parsedPage;
 
         const { posts, totalPages } = await getBlogPosts({
             tag: tagFilter,
