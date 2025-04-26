@@ -1,39 +1,37 @@
-// src/components/Navbar.tsx
-'use client'
+'use client';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+// Define your navigation items
+const navItems = [
+    { name: 'About', href: '/about' },
+    { name: 'Skills', href: '/skills' },
+    { name: 'Projects', href: '/projects' },
+    { name: 'Contact', href: '/contact' },
+    { name: 'Blog', href: '/blog' },
+];
 
 export default function Navbar() {
-    const pathname = usePathname()
-
-    const isActive = (path: string) => pathname === path
+    const pathname = usePathname();
 
     return (
-        <nav className="w-full flex justify-between items-center px-6 py-4 bg-white shadow-md">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-                My Portfolio
-            </Link>
-            <div className="flex gap-6">
-                <Link
-                    href="/"
-                    className={isActive('/') ? 'font-semibold text-blue-500' : 'text-gray-700'}
-                >
-                    Home
-                </Link>
-                <Link
-                    href="/blog"
-                    className={isActive('/blog') ? 'font-semibold text-blue-500' : 'text-gray-700'}
-                >
-                    Blog
-                </Link>
-                <Link
-                    href="/contact"
-                    className={isActive('/contact') ? 'font-semibold text-blue-500' : 'text-gray-700'}
-                >
-                    Contact
-                </Link>
+        <nav className="bg-gray-800 text-white p-4">
+            <div className="container mx-auto flex justify-between items-center">
+                <Link href="/" className="text-xl font-bold">MyPortfolio</Link>
+                <div className="space-x-4">
+                    {navItems.map((item) => (
+                        <Link
+                            key={item.href}
+                            href={item.href}
+                            className={`hover:text-gray-300 transition-colors ${
+                                pathname === item.href ? 'text-blue-400 font-medium' : ''
+                            }`}
+                        >
+                            {item.name}
+                        </Link>
+                    ))}
+                </div>
             </div>
         </nav>
-    )
+    );
 }
