@@ -17,7 +17,7 @@ export default function Navbar() {
     return (
         <nav className="bg-gray-800 text-white p-4">
             <div className="container mx-auto flex justify-between items-center">
-                <Link href="/" className="text-xl font-bold">MyPortfolio</Link>
+                <Link href="/" className="text-xl font-bold">My Portfolio</Link>
                 <div className="space-x-4">
                     {navItems.map((item) => (
                         <Link
