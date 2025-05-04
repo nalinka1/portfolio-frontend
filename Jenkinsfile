@@ -1,6 +1,6 @@
 pipeline {
     agent any
-
+    
     environment {
         NODE_VERSION = '20'
         GITHUB_BRANCH = 'develop'
@@ -15,15 +15,20 @@ pipeline {
                 checkout scm
             }
         }
-
+        
         stage('Setup Node.js') {
             steps {
                 script {
-                    // Install Node.js
-                    nodejs(nodeJSInstallationName: "node-${NODE_VERSION}") {
-                        sh 'node --version'
-                        sh 'npm --version'
-                    }
+                    // Use nvm to install and use Node.js
+                    sh '''
+                        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+                        export NVM_DIR="$HOME/.nvm"
+                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        nvm install ${NODE_VERSION}
+                        nvm use ${NODE_VERSION}
+                        node --version
+                        npm --version
+                    '''
                 }
             }
         }
@@ -31,9 +36,12 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    nodejs(nodeJSInstallationName: "node-${NODE_VERSION}") {
-                        sh 'npm install'
-                    }
+                    sh '''
+                        export NVM_DIR="$HOME/.nvm"
+                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        nvm use ${NODE_VERSION}
+                        npm install
+                    '''
                 }
             }
         }
@@ -41,9 +49,12 @@ pipeline {
         stage('Build') {
             steps {
                 script {
-                    nodejs(nodeJSInstallationName: "node-${NODE_VERSION}") {
-                        sh 'npm run build'
-                    }
+                    sh '''
+                        export NVM_DIR="$HOME/.nvm"
+                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        nvm use ${NODE_VERSION}
+                        npm run build
+                    '''
                 }
             }
         }
@@ -51,9 +62,12 @@ pipeline {
         stage('Test') {
             steps {
                 script {
-                    nodejs(nodeJSInstallationName: "node-${NODE_VERSION}") {
-                        sh 'npm test'
-                    }
+                    sh '''
+                        export NVM_DIR="$HOME/.nvm"
+                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        nvm use ${NODE_VERSION}
+                        npm test
+                    '''
                 }
             }
         }
