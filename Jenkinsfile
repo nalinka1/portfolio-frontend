@@ -2,83 +2,70 @@ pipeline {
     agent any
 
     environment {
-        NODE_VERSION = '20'
-        GITHUB_BRANCH = 'develop'
+        // App & Docker settings
+        APP_NAME = "portfolio-frontend"
+        DOCKER_IMAGE = "portfolio-frontend"  // No username if using local Docker
+        DOCKER_TAG = "latest"
+        APP_PORT = "3000"  // Next.js default
+
+        // ngrok settings (for webhook debugging)
+        NGROK_URL = "https://f708-2402-4000-2200-523-c0a9-21d1-b554-98fc.ngrok-free.app"
     }
 
     stages {
+        // Stage 1: Checkout code
         stage('Checkout') {
-            when {
-                branch 'develop'
-            }
             steps {
                 checkout scm
             }
         }
 
-        stage('Setup Node.js') {
-            steps {
-                script {
-                    sh '''
-                        curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
-                        export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                        nvm install ${NODE_VERSION}
-                        nvm use ${NODE_VERSION}
-                        node --version
-                        npm --version
-                    '''
-                }
-            }
-        }
-
+        // Stage 2: Install dependencies (cached)
         stage('Install Dependencies') {
             steps {
-                script {
-                    sh '''
-                        export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                        nvm use ${NODE_VERSION}
-                        npm install
-                    '''
-                }
+                sh 'npm ci --prefer-offline'
             }
         }
 
+        // Stage 3: Build Next.js
         stage('Build') {
             steps {
+                sh 'npm run build'
+            }
+        }
+
+        // Stage 4: Dockerize (optimized for local Docker Desktop)
+        stage('Build Docker Image') {
+            steps {
                 script {
-                    sh '''
-                        export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                        nvm use ${NODE_VERSION}
-                        npm run build
-                    '''
+                    sh """
+                        docker build -t ${DOCKER_IMAGE}:${DOCKER_TAG} \\
+                            --build-arg NODE_ENV=production \\
+                            .
+                    """
                 }
             }
         }
 
-        // stage('Test') {
-        //     steps {
-        //         script {
-        //             sh '''
-        //                 export NVM_DIR="$HOME/.nvm"
-        //                 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-        //                 nvm use ${NODE_VERSION}
-        //                 npm test
-        //             '''
-        //         }
-        //     }
-        // }
-
-        stage('Deploy') {
+        // Stage 5: Stop old container and run new one
+        stage('Deploy Locally') {
             when {
                 branch 'develop'
             }
             steps {
                 script {
-                    echo 'Deploying to server...'
-                    // Add actual deployment commands based on your setup
+                    sh """
+                        # Gracefully stop and remove old container
+                        docker stop ${APP_NAME} || true
+                        docker rm ${APP_NAME} || true
+
+                        # Run new container (map to host port 3000)
+                        docker run -d \\
+                            --name ${APP_NAME} \\
+                            -p ${APP_PORT}:3000 \\
+                            -e NODE_ENV=production \\
+                            ${DOCKER_IMAGE}:${DOCKER_TAG}
+                    """
                 }
             }
         }
@@ -86,10 +73,14 @@ pipeline {
 
     post {
         success {
-            echo 'Pipeline succeeded! Application has been built and deployed.'
+            echo """
+            ✅ Successfully deployed!
+            Access your Next.js app: http://localhost:${APP_PORT}
+            GitHub webhook URL: ${NGROK_URL}/github-webhook/
+            """
         }
         failure {
-            echo 'Pipeline failed! Check the logs for details.'
+            echo "❌ Pipeline failed! Check logs above."
         }
         always {
             cleanWs()
