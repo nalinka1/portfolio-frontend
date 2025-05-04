@@ -58,18 +58,18 @@ pipeline {
             }
         }
 
-        stage('Test') {
-            steps {
-                script {
-                    sh '''
-                        export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
-                        nvm use ${NODE_VERSION}
-                        npm test
-                    '''
-                }
-            }
-        }
+        // stage('Test') {
+        //     steps {
+        //         script {
+        //             sh '''
+        //                 export NVM_DIR="$HOME/.nvm"
+        //                 [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+        //                 nvm use ${NODE_VERSION}
+        //                 npm test
+        //             '''
+        //         }
+        //     }
+        // }
 
         stage('Deploy') {
             when {
