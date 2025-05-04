@@ -2,39 +2,68 @@ pipeline {
     agent any
 
     environment {
-        // App & Docker settings
+        // App settings
         APP_NAME = "portfolio-frontend"
-        DOCKER_IMAGE = "portfolio-frontend"  // No username if using local Docker
-        DOCKER_TAG = "latest"
-        APP_PORT = "3000"  // Next.js default
+        APP_PORT = "3000"  // Next.js default port
 
-        // ngrok settings (for webhook debugging)
-        NGROK_URL = "https://f708-2402-4000-2200-523-c0a9-21d1-b554-98fc.ngrok-free.app"
+        // Docker settings
+        DOCKER_IMAGE = "portfolio-frontend"  // No username needed for local Docker
+        DOCKER_TAG = "latest"
+
+        // Node.js version
+        NODE_VERSION = "20"
     }
 
     stages {
-        // Stage 1: Checkout code
+        // Stage 1: Install Node.js via NVM (critical fix)
+        stage('Setup Node.js') {
+            steps {
+                script {
+                    sh '''
+                        # Install NVM if not present
+                        if ! command -v nvm &> /dev/null; then
+                            curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
+                        fi
+
+                        # Load NVM
+                        export NVM_DIR="$HOME/.nvm"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+
+                        # Install and use Node.js
+                        nvm install ${NODE_VERSION} --latest-npm
+                        nvm use ${NODE_VERSION}
+                        node --version
+                        npm --version
+                    '''
+                }
+            }
+        }
+
+        // Stage 2: Checkout code (runs for all branches)
         stage('Checkout') {
+            when {
+                branch 'develop'
+            }
             steps {
                 checkout scm
             }
         }
 
-        // Stage 2: Install dependencies (cached)
+        // Stage 3: Install dependencies (cached)
         stage('Install Dependencies') {
             steps {
                 sh 'npm ci --prefer-offline'
             }
         }
 
-        // Stage 3: Build Next.js
+        // Stage 4: Build Next.js app
         stage('Build') {
             steps {
                 sh 'npm run build'
             }
         }
 
-        // Stage 4: Dockerize (optimized for local Docker Desktop)
+        // Stage 5: Build Docker image
         stage('Build Docker Image') {
             steps {
                 script {
@@ -47,19 +76,19 @@ pipeline {
             }
         }
 
-        // Stage 5: Stop old container and run new one
+        // Stage 6: Deploy (branch-specific)
         stage('Deploy Locally') {
             when {
-                branch 'develop'
+                branch 'develop'  // Only deploy from develop branch
             }
             steps {
                 script {
                     sh """
-                        # Gracefully stop and remove old container
+                        # Stop and remove old container
                         docker stop ${APP_NAME} || true
                         docker rm ${APP_NAME} || true
 
-                        # Run new container (map to host port 3000)
+                        # Run new container
                         docker run -d \\
                             --name ${APP_NAME} \\
                             -p ${APP_PORT}:3000 \\
@@ -76,7 +105,6 @@ pipeline {
             echo """
             ✅ Successfully deployed!
             Access your Next.js app: http://localhost:${APP_PORT}
-            GitHub webhook URL: ${NGROK_URL}/github-webhook/
             """
         }
         failure {
