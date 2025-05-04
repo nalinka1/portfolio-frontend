@@ -1,6 +1,6 @@
 pipeline {
     agent any
-    
+
     environment {
         NODE_VERSION = '20'
         GITHUB_BRANCH = 'develop'
@@ -15,15 +15,14 @@ pipeline {
                 checkout scm
             }
         }
-        
+
         stage('Setup Node.js') {
             steps {
                 script {
-                    // Use nvm to install and use Node.js
                     sh '''
                         curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.0/install.sh | bash
                         export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         nvm install ${NODE_VERSION}
                         nvm use ${NODE_VERSION}
                         node --version
@@ -38,7 +37,7 @@ pipeline {
                 script {
                     sh '''
                         export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         nvm use ${NODE_VERSION}
                         npm install
                     '''
@@ -51,7 +50,7 @@ pipeline {
                 script {
                     sh '''
                         export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         nvm use ${NODE_VERSION}
                         npm run build
                     '''
@@ -64,7 +63,7 @@ pipeline {
                 script {
                     sh '''
                         export NVM_DIR="$HOME/.nvm"
-                        [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+                        [ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
                         nvm use ${NODE_VERSION}
                         npm test
                     '''
@@ -78,8 +77,6 @@ pipeline {
             }
             steps {
                 script {
-                    // Add your deployment steps here
-                    // For example, copying files to a server or deploying to a cloud service
                     echo 'Deploying to server...'
                     // Add actual deployment commands based on your setup
                 }
@@ -95,7 +92,6 @@ pipeline {
             echo 'Pipeline failed! Check the logs for details.'
         }
         always {
-            // Clean workspace after build
             cleanWs()
         }
     }
